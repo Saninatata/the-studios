@@ -15,9 +15,18 @@
 @keyframes float{0%,100%{transform:translate3d(0,0,0) rotate(-1deg)}50%{transform:translate3d(0,-13px,0) rotate(1deg)}}@keyframes turn{0%{transform:rotate(-3deg) scale(.98)}100%{transform:rotate(3deg) scale(1.02)}}
 @media(max-width:760px){.topbar{height:72px}.nav{display:none}.menu-btn{display:block}.mobile-menu{position:fixed;inset:0;background:#151614;z-index:29;padding:110px var(--pad) 50px;flex-direction:column;justify-content:center;gap:20px}.mobile-menu.open{display:flex}.mobile-menu a{font:500 clamp(38px,10vw,58px) var(--serif);letter-spacing:-.04em;border-bottom:1px solid var(--line);padding-bottom:13px}.hero{min-height:100svh;padding-top:105px;padding-bottom:25px}.hero-top{align-items:flex-start}.hero-index{display:none}.hero-stage{inset:22% -26% 23% 22%;opacity:.82}.sculpture{width:115vw}.hero-copy{padding-top:50px;margin:auto 0}.hero h1{font-size:clamp(69px,15.2vw,112px);line-height:.83;margin-bottom:28px}.hero h1 .second{padding-left:0}.hero-description{font-size:12px;max-width:300px}.hero-bottom{padding-top:13px}.hero-bottom .mono{font-size:8px}.scroll-cue{gap:7px}.scroll-cue i{height:30px}.section{padding-top:92px;padding-bottom:100px}.intro{grid-template-columns:1fr;gap:45px}.intro-copy{font-size:clamp(38px,9vw,54px)}.intro-foot{margin:32px 0 0}.section-head{display:block;margin-bottom:48px}.section-head .section-title{margin-top:28px}.work-grid{grid-template-columns:1fr;gap:47px}.project:nth-child(even){margin-top:0}.project:nth-child(even) .project-visual{aspect-ratio:1.25}.project-meta{padding-top:14px}.project-name{font-size:27px}.service{grid-template-columns:30px 1fr 24px;gap:12px;padding:24px 0}.service h3{font-size:27px}.service p{grid-column:2;grid-row:2}.service-arrow{grid-column:3;grid-row:1}.approach-grid,.studio-grid{grid-template-columns:1fr;gap:45px}.approach-copy,.studio-statement{font-size:clamp(40px,9vw,58px)}.principles{grid-template-columns:1fr;gap:25px;margin-top:58px}.contact-title{font-size:clamp(63px,13.5vw,100px);margin:62px 0 55px}.contact-row{align-items:flex-start;flex-direction:column}.contact-side{text-align:left}.footer{flex-direction:column}.footer-links{flex-wrap:wrap}.hero-kicker{font-size:8px}.hero-bottom .hero-location{max-width:170px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}.reveal{opacity:1;transform:none}.sculpture{animation:none}}
+
+/* Original faceted diamond cursor */
+#diamond-cursor-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:999999;opacity:0;transition:opacity .12s ease}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ body.diamond-cursor-active,body.diamond-cursor-active a,body.diamond-cursor-active button,body.diamond-cursor-active [role="button"]{cursor:none}
+ body.diamond-cursor-active input,body.diamond-cursor-active textarea,body.diamond-cursor-active [contenteditable="true"]{cursor:text}
+}
+
 </style>
 </head>
 <body>
+<canvas id="diamond-cursor-canvas" aria-hidden="true"></canvas>
 <header class="topbar">
 <a class="brand" href="#top" aria-label="The Studios Crafts home"><span class="brand-mark">S</span><span>THE STUDIOS<small>CRAFTS · INDEPENDENT STUDIO</small></span></a>
 <nav class="nav" aria-label="Main navigation"><a href="#work">Work</a><a href="#capabilities">Capabilities</a><a href="#approach">Approach</a><a href="#studio">Studio</a><a class="nav-cta" href="#contact">Start a project ↗</a></nav>
@@ -107,5 +116,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
 const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}}),{threshold:.12});
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 </script>
+<script type="module" src="./assets/diamond-cursor.js"></script>
 </body>
 </html>
