@@ -32,6 +32,23 @@ export async function start() {
   const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(-9, 18, 12); scene.add(key);
 
   await Promise.all([document.fonts.load('128px "Instrument Serif"'), document.fonts.load('22px "Geist Variable"')]).catch(() => {});
+  /* Fetch only public-domain object records from The Met; never substitute drawn stand-ins. */
+  await Promise.all(PROJECTS.filter((p) => p.metId).map(async (p) => {
+    try {
+      const r = await fetch('https://collectionapi.metmuseum.org/public/collection/v1/objects/' + p.metId);
+      if (!r.ok) throw new Error('Met API unavailable');
+      const data = await r.json();
+      if (!data.isPublicDomain || !data.primaryImageSmall) throw new Error('No open-access image');
+      p.image = data.primaryImageSmall;
+      p.creator = data.artistDisplayName || p.creator;
+      p.date = data.objectDate || p.date;
+      p.medium = data.medium || p.medium;
+      p.description = data.objectName ? data.objectName + '. ' + p.description : p.description;
+      p.source = data.objectURL || p.source;
+    } catch (error) { p.imageFailed = true; }
+  }));
+  const galleryStart = 0.535, galleryEnd = 0.91, pieceSpan = (galleryEnd - galleryStart) / PROJECTS.length;
+  PROJECTS.forEach((p, i) => { p.at = [galleryStart + i * pieceSpan, galleryStart + (i + 1) * pieceSpan]; });
   const studio = buildStudio(PROJECTS); scene.add(studio.group);
   const lens = makeLens(renderer, scene, camera);
 
@@ -69,10 +86,10 @@ export async function start() {
     for (const s of SCENES) { const on = inRange(p, s.range); s.el.classList.toggle('is-on', on); s.bodyEl.classList.toggle('is-on', s.bodyRange ? inRange(p, s.bodyRange) : on); }
     stage.classList.toggle('has-rail', p > 0.06 && p < 0.94);
     railItems.forEach((b, i) => { const [a, z] = CHAPTERS[i].range; b.style.setProperty('--p', clamp((p - a) / (z - a)).toFixed(3)); b.classList.toggle('is-current', p >= a && p < z); });
-    const on = p > PROJECTS[0].at[0] - 0.01 && p < PROJECTS[2].at[1];
+    const on = p >= PROJECTS[0].at[0] && p < PROJECTS[PROJECTS.length - 1].at[1];
     card.classList.toggle('is-on', on);
     const f = on ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
-    if (f !== focus) { focus = f; if (f >= 0) { cardImg.src = PROJECTS[f].image; cardCap.textContent = PROJECTS[f].caption; } }
+    if (f !== focus) { focus = f; if (f >= 0) { cardImg.src = PROJECTS[f].image; cardCap.textContent = String(f + 1).padStart(2, '0') + ' / ' + PROJECTS.length + ' — ' + PROJECTS[f].caption; } }
     actions.classList.toggle('is-on', inRange(p, ACTIONS_RANGE));
     const w = HINT_WORDS.find(([from]) => p >= from)[1]; if (w !== hintWord.textContent) hintWord.textContent = w;
     hint.style.opacity = p > 0.02 && p < 0.9 ? 0 : 1;
@@ -80,7 +97,7 @@ export async function start() {
   }
 
   /* Overlay: the piece in focus, full size on glass */
-  let lastFocus = null;
+  let lastFocus = null, lastFocusIndex = -1;
   function openOverlay(pr) {
     const o = pr.overlay;
     el('ovYear').textContent = o.year; el('ovTitle').textContent = o.title; el('ovLabel').innerHTML = o.label.join('<br>');
@@ -93,10 +110,13 @@ export async function start() {
     setTimeout(() => { overlay.hidden = true; }, 500); if (lastFocus) lastFocus.focus({ preventScroll: true });
   }
   card.addEventListener('click', () => openOverlay(PROJECTS[Math.max(0, focus)]));
+  const moveOverlay = (step) => { const next = (lastFocusIndex + step + PROJECTS.length) % PROJECTS.length; openOverlay(PROJECTS[next]); };
+  el('ovPrev').addEventListener('click', () => moveOverlay(-1));
+  el('ovNext').addEventListener('click', () => moveOverlay(1));
   el('ovClose').addEventListener('click', closeOverlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOverlay(); });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeOverlay();
+    if (e.key === 'Escape') closeOverlay();\n    if (!overlay.hidden && e.key === 'ArrowLeft') moveOverlay(-1);\n    if (!overlay.hidden && e.key === 'ArrowRight') moveOverlay(1);
     if (e.key === 'Tab' && !overlay.hidden) { const it = [...overlay.querySelectorAll('button')], a = it[0], z = it[it.length - 1];
       if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
   });
@@ -155,7 +175,7 @@ export async function start() {
 
     studio.assemble(p);
     const lampsOn = sstep(0.8, 0.9, p);
-    const fi = p > 0.58 && p < 0.82 ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
+    const fi = p >= PROJECTS[0].at[0] && p < PROJECTS[PROJECTS.length - 1].at[1] ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
     studio.light(fi, lampsOn); studio.drift(dt);
 
     /* Camera: a long dolly down the hall; in Craft it slides to each piece and moves in on it; at the end it lifts and pulls back to show the whole studio. */
