@@ -11,7 +11,7 @@ export default function App() {
     <>
       <div className="preloader" id="preloader" role="status" aria-live="polite">
         <p className="preloader__top caps">Design Authority</p>
-        <div className="preloader__frame glass" id="preFrame"><p className="preloader__title display">The<br />Studios</p></div>
+        <div className="preloader__frame" id="preFrame"><img className="preloader__mark" src="/studios-mark.svg" alt="The Studios monogram" /></div>
         <div className="preloader__enter" id="preEnter" hidden>
           <button className="pill display" id="enterBtn" type="button">Enter</button>
           <Sound />
@@ -20,6 +20,14 @@ export default function App() {
         <p className="preloader__status caps" id="preStatus">Ground</p>
         <p className="preloader__hint caps" id="preHint" hidden>Best on a large screen. Scroll slowly.</p>
       </div>
+
+      <section className="hero" id="hero" aria-label="The Studios visual introduction" aria-hidden="true">
+        <div className="hero__eyebrow caps">Independent creative studio · Selected visual culture</div>
+        <div className="hero__collage" id="heroCollage"></div>
+        <div className="hero__copy"><p className="caps">Art · Identity · Digital</p><h1 className="display">A world of<br /><em>visual ideas.</em></h1></div>
+        <button className="hero__enter caps" id="heroEnter" type="button">Explore the exhibition <span>↘</span></button>
+        <div className="hero__index caps">The Studios — Visual exhibition / 001</div>
+      </section>
 
       <main className="stage" id="stage">
         <canvas className="stage__canvas" id="gl" aria-hidden="true"></canvas>
