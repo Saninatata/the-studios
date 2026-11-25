@@ -34,9 +34,10 @@ function PageBody({page, onNavigate}:{page:string;onNavigate:(p:string)=>void}) 
 }
 export default function Pages() {
  const [page,setPage]=useState('Home');
- return <div className="site-shell">
-  <header className="site-nav"><a className="site-brand" href="#home" onClick={e=>{e.preventDefault();setPage('Home')}}><img src="/studios-mark.svg" alt="The Studios monogram"/> <span>THE STUDIOS<br/>CRAFTS</span></a><nav aria-label="Main navigation">{nav.map(n=><button key={n} className={page===n?'is-active':''} onClick={()=>setPage(n)}>{n}</button>)}</nav><button className="site-nav-contact" onClick={()=>setPage('Contact')}>Start a project ↗</button></header>
-  <main className="page-view" key={page}><PageBody page={page} onNavigate={setPage}/></main>
+ const [open,setOpen]=useState(false);
+ return <><button className="site-menu-trigger" onClick={()=>setOpen(true)}>Menu <span>＋</span></button><div className={'site-shell'+(open?' is-open':'')} aria-hidden={!open}>
+  <header className="site-nav"><a className="site-brand" href="#home" onClick={e=>{e.preventDefault();setPage('Home')}}><img src="/studios-mark.svg" alt="The Studios monogram"/> <span>THE STUDIOS<br/>CRAFTS</span></a><nav aria-label="Main navigation">{nav.map(n=><button key={n} className={page===n?'is-active':''} onClick={()=>{setPage(n);if(n==='Home')setOpen(false)}}>{n}</button>)}</nav><button className="site-nav-contact" onClick={()=>setPage('Contact')}>Start a project ↗</button></header>
+  <button className="site-close" onClick={()=>setOpen(false)}>Close ×</button><main className="page-view" key={page}><PageBody page={page} onNavigate={setPage}/></main>
   <footer className="site-footer"><span>© THE STUDIOS CRAFTS</span><span>Independent creative practice</span><button onClick={()=>setPage('Legal')}>Privacy · Terms</button></footer>
- </div>;
+ </div></>;
 }
