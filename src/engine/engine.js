@@ -50,6 +50,13 @@ export async function start() {
   }));
   const galleryStart = 0.535, galleryEnd = 0.91, pieceSpan = (galleryEnd - galleryStart) / PROJECTS.length;
   PROJECTS.forEach((p, i) => { p.at = [galleryStart + i * pieceSpan, galleryStart + (i + 1) * pieceSpan]; });
+  const heroCollage = el('heroCollage');
+  PROJECTS.slice(0, 6).forEach((project, index) => {
+    const frame = document.createElement('figure'); frame.className = 'hero__piece';
+    const img = document.createElement('img'); img.alt = project.name; img.loading = index < 3 ? 'eager' : 'lazy';
+    img.src = project.image || (project.source ? 'https://image.thum.io/get/width/720/crop/900/noanimate/' + project.source : '');
+    frame.append(img); heroCollage.append(frame);
+  });
   const studio = buildStudio(PROJECTS, renderer); scene.add(studio.group);
   const lens = makeLens(renderer, scene, camera);
 
@@ -220,18 +227,24 @@ export async function start() {
     preCount.textContent = String(n).padStart(3, '0'); preStatus.textContent = n < 34 ? 'Ground' : n < 90 ? 'Structure' : 'Light';
     pre.style.setProperty('--load', shown.toFixed(1));
     if (shown >= 100) {
-      renderer.setAnimationLoop(loop);   // from here the hall draws behind the preloader, so Enter has no hitch
-      setTimeout(() => { el('preEnter').hidden = false; el('preHint').hidden = false; pre.classList.add('is-morph'); }, 500);
+      renderer.setAnimationLoop(loop);
+      document.body.classList.remove('is-loading');
+      el('hero').classList.add('is-on');
+      pre.classList.add('is-done');
       return;
     }
     requestAnimationFrame(tick);
   })(performance.now());
   open = -1;  // the canvas starts as the same white as the preloader, and opens on Enter
-  el('enterBtn').addEventListener('click', () => {
-    scrollTo(0, 0); entered = true; document.body.classList.remove('is-loading');
-    if (reduced) { open = 1; } else { open = 0; opening = performance.now() + OPEN_AFTER; pre.classList.add('is-dissolve'); }
-    pre.classList.add('is-done'); Sound.start();
-  });
+  const hero = el('hero');
+  const enterHero = () => {
+    if (hero.classList.contains('is-away')) return;
+    entered = true; hero.classList.add('is-away');
+    if (reduced) open = 1; else { open = 0; opening = performance.now() + OPEN_AFTER; }
+    Sound.start();
+  };
+  el('heroEnter').addEventListener('click', () => { enterHero(); toProgress(0.012); });
+  addEventListener('scroll', () => { if (scrollY > 36) enterHero(); }, { passive: true });
 
   /* For looking into it from the console: __studio.pose(0.55) holds a moment, pose(null) lets go. */
   window.__studio = { renderer, scene, camera, pose(p) { hold = p == null ? null : p; }, open(v) { opening = 0; open = v; } };
