@@ -34,10 +34,6 @@ export default function App() {
           <span className="card__img"><img id="cardImg" alt="" /></span>
           <span className="card__cap" id="cardCap"></span>
         </button>
-        <div className="actions" id="actions">
-          <a className="pill display" id="startBtn" href="mailto:hello@thestudios.site">Start a project</a>
-          <button className="pill pill--ghost display" id="againBtn" type="button">Watch again</button>
-        </div>
         <nav className="rail" id="rail" aria-label="Chapters"></nav>
         <p className="hint caps" id="hint">Scroll to<br /><span id="hintWord">build</span></p>
       </main>
