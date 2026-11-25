@@ -167,4 +167,11 @@ img { display: block; }
   .overlay__left, .overlay__figure, .overlay__right { position: static; transform: none; width: auto; }
   .overlay__title { font-size: 40px; }
 }
-\n/* Exhibition navigation and source attribution */\n.overlay__nav { position: absolute; left: 50%; bottom: var(--pad); transform: translateX(-50%); display: flex; align-items: center; gap: 28px; white-space: nowrap; }\n.overlay__nav a { border-bottom: 1px solid var(--ink-25); padding-bottom: 4px; }\n.overlay__nav button, .overlay__nav a { font-size: max(calc(var(--u) * 12), 10px); letter-spacing: .04em; text-transform: uppercase; }\n.overlay__nav button:hover, .overlay__nav a:hover { opacity: .55; }\n.card__img img { background: #e9e5dc; }\n@media (max-width: 767px) { .overlay__nav { position: static; transform: none; justify-content: space-between; gap: 12px; order: 4; } }\n
+
+/* Exhibition navigation and source attribution */
+.overlay__nav { position: absolute; left: 50%; bottom: var(--pad); transform: translateX(-50%); display: flex; align-items: center; gap: 28px; white-space: nowrap; }
+.overlay__nav a { border-bottom: 1px solid var(--ink-25); padding-bottom: 4px; }
+.overlay__nav button, .overlay__nav a { font-size: max(calc(var(--u) * 12), 10px); letter-spacing: .04em; text-transform: uppercase; }
+.overlay__nav button:hover, .overlay__nav a:hover { opacity: .55; }
+.card__img img { background: #e9e5dc; }
+@media (max-width: 767px) { .overlay__nav { position: static; transform: none; justify-content: space-between; gap: 12px; order: 4; } }
