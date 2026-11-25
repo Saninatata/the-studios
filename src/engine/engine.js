@@ -2,7 +2,7 @@
    the texts, the sound) is a function of p. Nothing here is a film: the studio is real geometry assembled live. */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { SCENES, CHAPTERS, PROJECTS, AGAIN_MS, ACTIONS_RANGE, HINT_WORDS } from './content.js';
+import { SCENES, CHAPTERS, PROJECTS, HINT_WORDS } from './content.js';
 import { buildStudio, WALL_Z } from './studio.js';
 import { makeLens } from './post.js';
 
@@ -21,15 +21,15 @@ export async function start() {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); if (!renderer.capabilities.isWebGL2) throw 0; }
   catch { el('noGl').classList.add('is-on'); return; }
-  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 0.72;
   const scene = new THREE.Scene(), bg = new THREE.Color('#f5f4f1');
   scene.background = bg; scene.fog = new THREE.FogExp2(bg, 0.021);
   const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 220);
 
   const pm = new THREE.PMREMGenerator(renderer);
-  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.95; pm.dispose();
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe6f0, 0.5));
-  const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(-9, 18, 12); scene.add(key);
+  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.48; pm.dispose();
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe6f0, 0.24));
+  const key = new THREE.DirectionalLight(0xffffff, 0.52); key.position.set(-9, 18, 12); scene.add(key);
 
   await Promise.all([document.fonts.load('128px "Instrument Serif"'), document.fonts.load('22px "Geist Variable"')]).catch(() => {});
   /* Fetch only public-domain object records from The Met; never substitute drawn stand-ins. */
@@ -38,8 +38,9 @@ export async function start() {
       const r = await fetch('https://collectionapi.metmuseum.org/public/collection/v1/objects/' + p.metId, { signal: AbortSignal.timeout(8000) });
       if (!r.ok) throw new Error('Met API unavailable');
       const data = await r.json();
-      if (!data.isPublicDomain || !data.primaryImageSmall) throw new Error('No open-access image');
-      p.image = data.primaryImageSmall;
+      if (!data.isPublicDomain || !(data.primaryImageSmall || data.primaryImage)) throw new Error('No open-access image');
+      p.image = data.primaryImageSmall || data.primaryImage;
+      p.imageFallback = data.primaryImage && data.primaryImage !== p.image ? data.primaryImage : null;
       p.creator = data.artistDisplayName || p.creator;
       p.date = data.objectDate || p.date;
       p.medium = data.medium || p.medium;
@@ -49,7 +50,7 @@ export async function start() {
   }));
   const galleryStart = 0.535, galleryEnd = 0.91, pieceSpan = (galleryEnd - galleryStart) / PROJECTS.length;
   PROJECTS.forEach((p, i) => { p.at = [galleryStart + i * pieceSpan, galleryStart + (i + 1) * pieceSpan]; });
-  const studio = buildStudio(PROJECTS); scene.add(studio.group);
+  const studio = buildStudio(PROJECTS, renderer); scene.add(studio.group);
   const lens = makeLens(renderer, scene, camera);
 
   let ratio = Math.min(devicePixelRatio || 1, 2);
@@ -58,7 +59,7 @@ export async function start() {
 
   /* ---------- Interface ---------- */
   const stage = el('stage'), card = el('card'), cardImg = el('cardImg'), cardCap = el('cardCap'), overlay = el('overlay');
-  const actions = el('actions'), hintWord = el('hintWord'), hint = el('hint'), rail = el('rail');
+  const hintWord = el('hintWord'), hint = el('hint'), rail = el('rail');
   for (const s of SCENES) {
     s.el = Object.assign(document.createElement('div'), { className: 'title' });
     s.el.innerHTML = `<p class="title__label">${s.label}</p><p class="title__text display">${s.title}</p>`;
@@ -90,7 +91,6 @@ export async function start() {
     card.classList.toggle('is-on', on);
     const f = on ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
     if (f !== focus) { focus = f; if (f >= 0) { cardImg.src = PROJECTS[f].image || ''; cardImg.alt = PROJECTS[f].name; cardCap.textContent = String(f + 1).padStart(2, '0') + ' / ' + PROJECTS.length + ' — ' + PROJECTS[f].caption; } }
-    actions.classList.toggle('is-on', inRange(p, ACTIONS_RANGE));
     const w = HINT_WORDS.find(([from]) => p >= from)[1]; if (w !== hintWord.textContent) hintWord.textContent = w;
     hint.style.opacity = p > 0.02 && p < 0.9 ? 0 : 1;
     const ch = CHAPTERS.findIndex((c) => inRange(p, c.range)); if (ch !== lastChapter) { lastChapter = ch; if (ch >= 0) Sound.chime(ch); }
