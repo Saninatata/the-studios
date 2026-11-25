@@ -1,4 +1,5 @@
 // Markup only. src/engine/engine.js finds these elements by id / class and drives them.
+import Pages from './Pages';
 const Sound = () => (
   <button className="sound caps" type="button" data-sound-toggle aria-pressed="true">
     <span className="sound__bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
@@ -64,6 +65,7 @@ export default function App() {
       </div>
 
       <div className="scroll" id="top" aria-hidden="true"></div>
+      <Pages />
       <div className="no-gl caps" id="noGl"><p>This page needs WebGL 2.<br />Open it in a current browser.</p></div>
     </>
   );
