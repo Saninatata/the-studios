@@ -47,68 +47,264 @@ button:focus-visible,a:focus-visible{outline:1px solid var(--accent);outline-off
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="dialog"><button class="close" id="close">Close ×</button><div class="eyebrow" id="dialogEyebrow">Selected work</div><h3 id="dialogTitle"></h3><p id="dialogBody"></p><a class="contact-link" id="dialogLink" href="#contact">Discuss a similar project ↗</a></div></div>
 <script type="module">
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
-const $=s=>document.querySelector(s), canvas=$('#world'), reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-$('#year').textContent=new Date().getFullYear();
-let loaded=0;const count=$('#count'),status=$('#status'),enter=$('#enter'),pre=$('#preloader');
-const loadTimer=setInterval(()=>{loaded=Math.min(100,loaded+Math.ceil(Math.random()*8));count.textContent=String(loaded).padStart(3,'0');$('#preFrame').style.setProperty('--load',loaded+'%');if(loaded>=100){clearInterval(loadTimer);status.textContent='The studio is ready';enter.classList.add('ready')}},65);
-enter.addEventListener('click',()=>{pre.classList.add('done');$('#site').classList.add('entered');setTimeout(()=>pre.remove(),1500);});
-let renderer,scene,camera,group,objects=[],clock=new THREE.Clock(),scroll=0, targetScroll=0;
-try{
-renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
-scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x11120f,.035);camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.1,100);camera.position.set(0,1.7,10);
-scene.add(new THREE.HemisphereLight(0xc9c5b4,0x151613,2.1));const key=new THREE.DirectionalLight(0xf4e8cf,3.1);key.position.set(-4,7,5);scene.add(key);const rim=new THREE.PointLight(0xb9bda7,24,22);rim.position.set(4,3,-5);scene.add(rim);
-group=new THREE.Group();scene.add(group);
 
-const monogramShape=new THREE.Shape();
-monogramShape.moveTo(1.05,1.55);
-monogramShape.bezierCurveTo(.45,2.05,-.55,1.95,-.98,1.25);
-monogramShape.bezierCurveTo(-1.42,.55,-.82,.05,-.12,-.25);
-monogramShape.bezierCurveTo(.62,-.55,1.12,-.82,.82,-1.42);
-monogramShape.bezierCurveTo(.5,-2.02,-.58,-1.98,-1.12,-1.35);
-monogramShape.lineTo(-.72,-.92);
-monogramShape.bezierCurveTo(-.28,-1.35,.22,-1.48,.48,-1.12);
-monogramShape.bezierCurveTo(.78,-.72,.28,-.42,-.42,-.12);
-monogramShape.bezierCurveTo(-1.28,.28,-1.52,1.02,-.92,1.7);
-monogramShape.bezierCurveTo(-.25,2.42,.85,2.22,1.38,1.68);
-monogramShape.lineTo(1.05,1.55);
-const monogramGeo=new THREE.ExtrudeGeometry(monogramShape,{depth:.34,bevelEnabled:true,bevelSegments:5,steps:1,bevelSize:.075,bevelThickness:.075,curveSegments:28});
-monogramGeo.computeVertexNormals();
-const monogramMat=new THREE.MeshStandardMaterial({color:0xb9ad8e,metalness:.82,roughness:.24});
-const monogram=new THREE.Mesh(monogramGeo,monogramMat);
-monogram.position.set(.65,1.55,.25);monogram.rotation.y=-.16;monogram.scale.setScalar(.9);group.add(monogram);
-const haloMat=new THREE.MeshStandardMaterial({color:0x8f927e,metalness:.78,roughness:.3,emissive:0x292b22});
-const halo=new THREE.Mesh(new THREE.TorusGeometry(2.05,.018,8,160),haloMat);
-halo.position.set(.65,1.55,.05);halo.rotation.set(.42,.2,-.18);group.add(halo);
-const haloTwo=new THREE.Mesh(new THREE.TorusGeometry(2.28,.009,6,160),new THREE.MeshBasicMaterial({color:0xc4b995,transparent:true,opacity:.48}));
-haloTwo.position.set(.65,1.55,.05);haloTwo.rotation.set(-.32,.58,.22);group.add(haloTwo);
-const plinth=new THREE.Mesh(new THREE.CylinderGeometry(1.45,1.62,.42,64),mat(0x35362f,.28,.72));
-plinth.position.set(.65,-.93,.25);group.add(plinth);
-const plinthLine=new THREE.Mesh(new THREE.TorusGeometry(1.48,.018,8,96),mat(0xb7aa88,.25,.8));
-plinthLine.rotation.x=Math.PI/2;plinthLine.position.set(.65,-.70,.25);group.add(plinthLine);
+const $ = (s) => document.querySelector(s);
+const canvas = $('#world');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('#year').textContent = new Date().getFullYear();
 
-const mat=(color,rough=.55,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(80,80),mat(0x24251f,.82));floor.rotation.x=-Math.PI/2;floor.position.y=-1.2;group.add(floor);
-const wallmat=mat(0x292a24,.9);for(const x of [-6,6]){const w=new THREE.Mesh(new THREE.BoxGeometry(.22,8,34),wallmat);w.position.set(x,2,-7);group.add(w)}
-const ceiling=new THREE.Mesh(new THREE.PlaneGeometry(12,36),mat(0x1a1b17));ceiling.rotation.x=Math.PI/2;ceiling.position.set(0,5,-7);group.add(ceiling);
-for(let z=2;z>-22;z-=5){for(const x of [-5.88,5.88]){const col=new THREE.Mesh(new THREE.CylinderGeometry(.25,.32,4.5,24),mat(0x77766a,.65));col.position.set(x,1.05,z);group.add(col);const cap=new THREE.Mesh(new THREE.BoxGeometry(.7,.18,.7),mat(0x969385));cap.position.set(x,3.35,z);group.add(cap)}}
-const createCanvas=(z,color,idx)=>{const frame=new THREE.Group();frame.position.set(idx%2===0?-3.1:3.1,1.45,z);frame.rotation.y=idx%2===0?.13:-.13;const outer=new THREE.Mesh(new THREE.BoxGeometry(3.05,2.65,.22),mat(0x857653,.35,.62));frame.add(outer);const inner=new THREE.Mesh(new THREE.BoxGeometry(2.76,2.36,.08),mat(0x171713));inner.position.z=.14;frame.add(inner);const art=new THREE.Group();art.position.z=.2;frame.add(art);const bg=new THREE.Mesh(new THREE.PlaneGeometry(2.62,2.22),new THREE.MeshStandardMaterial({color,roughness:.9}));art.add(bg);for(let i=0;i<9;i++){const geo=new THREE.TorusGeometry(.24+i*.09,.018,5,48);const m=new THREE.Mesh(geo,mat([0xb4ad98,0x777c6b,0xaaa18d][i%3],.5,.15));m.position.set(Math.sin(i*1.7)*.55,Math.cos(i*1.2)*.4,.05+i*.003);m.rotation.z=i*.38;art.add(m)}const plaque=new THREE.Mesh(new THREE.BoxGeometry(1.15,.16,.08),mat(0x8b8065,.4,.5));plaque.position.set(0,-1.52,.12);frame.add(plaque);group.add(frame);objects.push({frame,art,z,color});};
-createCanvas(-2,0x49483d,0);createCanvas(-10,0x45483f,1);createCanvas(-18,0x4c4036,2);
-for(let i=0;i<90;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.012+Math.random()*.018,6,6),new THREE.MeshBasicMaterial({color:0xb7b19c,transparent:true,opacity:.25+Math.random()*.25}));d.position.set((Math.random()-.5)*10,Math.random()*4-1,(Math.random()-.5)*35-8);group.add(d)}
-const glow=new THREE.Mesh(new THREE.SphereGeometry(1,32,32),new THREE.MeshBasicMaterial({color:0xb7b69d,transparent:true,opacity:.035}));glow.scale.set(4,3,2);glow.position.set(0,2,-11);group.add(glow);
-}catch(e){console.warn('3D scene unavailable',e);$('#status').textContent='3D scene unavailable — continuing in text mode'}
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const updateScroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;targetScroll=max>0?clamp(scrollY/max,0,1):0;};
-addEventListener('scroll',updateScroll,{passive:true});updateScroll();
-function animate(){requestAnimationFrame(animate);if(!renderer)return;const t=clock.getElapsedTime();scroll+=(targetScroll-scroll)*(reduced?1:.065);const s=scroll;
-camera.position.x=Math.sin(s*Math.PI*2)*.55;camera.position.y=1.6+Math.sin(t*.24)*.035;camera.position.z=10-s*27;camera.rotation.y=Math.sin(s*Math.PI*2)*-.045;camera.rotation.x=-.015+Math.sin(s*6)*.012;
-objects.forEach((o,i)=>{o.art.rotation.z=Math.sin(t*.25+i)*.025;o.art.rotation.y=Math.sin(t*.19+i)*.045;});monogram.rotation.y=-.16+Math.sin(t*.22)*.17+s*.42;monogram.rotation.z=Math.sin(t*.18)*.035;monogram.position.y=1.55+Math.sin(t*.42)*.045;halo.rotation.z=t*.055;haloTwo.rotation.z=-t*.035;group.rotation.y=Math.sin(s*4)*.025;renderer.render(scene,camera);
-const chapter=Math.min(5,Math.floor(s*6));const labels=['THE ENTRANCE','A POINT OF VIEW','SELECTED WORK','CONNECTED DISCIPLINES','THE APPROACH','THE STUDIO'];$('#chapterTag').innerHTML='<b>'+String(chapter+1).padStart(2,'0')+'</b> / '+labels[chapter];$('#progressText').textContent=String(chapter+1).padStart(2,'0')+' / 06';$('#progressBar').style.width=(s*100)+'%';
-const heroOpacity=clamp(1-s*8,0,1);$('#heroCopy').style.opacity=heroOpacity;$('#heroCopy').style.transform='translateY('+(-s*70)+'px)';$('#rightNote').style.opacity=clamp(1-s*7,0,1);$('#scrollHint').style.opacity=clamp(1-s*9,0,1);
-}animate();
-addEventListener('resize',()=>{if(renderer){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7))}});
-const projects={macd:['Hospitality / Digital ordering','Mac D & Shawarma','A compact digital menu experience designed to make browsing, selecting and sending an order straightforward. The menu connects customers to the restaurant through a WhatsApp order draft.','https://saninatata.github.io/mac-d-menu/'],nassets:['Mobility / Energy / Web experience','Nassets Technology','A digital direction for a business connecting electric mobility and solar energy solutions with customers in Nigeria.','mailto:sanimansur24@gmail.com'],studiolink:['Independent product / Creative platform','StudioLink','A product concept exploring a shared space for designers and architecture students to present ideas, connect and collaborate.','https://saninatata.github.io/studio-glow-hub/'],kaoku:['Real estate / Identity direction','Kaoku','A considered identity and digital direction for a real-estate venture.','mailto:sanimansur24@gmail.com']};
-const overlay=$('#overlay');document.querySelectorAll('[data-project]').forEach(b=>b.addEventListener('click',()=>{const p=projects[b.dataset.project];$('#dialogEyebrow').textContent=p[0];$('#dialogTitle').textContent=p[1];$('#dialogBody').textContent=p[2];$('#dialogLink').href=p[3];overlay.classList.add('open')}));function close(){overlay.classList.remove('open')}$('#close').addEventListener('click',close);overlay.addEventListener('click',e=>{if(e.target===overlay)close()});addEventListener('keydown',e=>{if(e.key==='Escape')close()});
-let audioCtx=null,osc1=null,osc2=null,gain=null,audioOn=false;$('#sound').addEventListener('click',async()=>{if(!audioCtx){audioCtx=new AudioContext();gain=audioCtx.createGain();gain.gain.value=0;gain.connect(audioCtx.destination);osc1=audioCtx.createOscillator();osc2=audioCtx.createOscillator();osc1.type='sine';osc2.type='triangle';osc1.frequency.value=55;osc2.frequency.value=82.4;const g1=audioCtx.createGain(),g2=audioCtx.createGain();g1.gain.value=.18;g2.gain.value=.035;osc1.connect(g1).connect(gain);osc2.connect(g2).connect(gain);osc1.start();osc2.start()}await audioCtx.resume();audioOn=!audioOn;gain.gain.setTargetAtTime(audioOn?.12:0,audioCtx.currentTime,.7);$('#sound').innerHTML='Sound <span>'+(audioOn?'on':'off')+'</span>'});
+let ready = false;
+const enter = $('#enter');
+const pre = $('#preloader');
+let progress = 0;
+const loadTimer = setInterval(() => {
+  progress = Math.min(100, progress + 4);
+  $('#count').textContent = String(progress).padStart(3, '0');
+  $('#preFrame').style.setProperty('--load', progress + '%');
+  if (progress === 100) {
+    clearInterval(loadTimer);
+    $('#status').textContent = 'The studio is ready';
+    enter.classList.add('ready');
+  }
+}, 35);
+enter.addEventListener('click', () => {
+  pre.classList.add('done');
+  $('#site').classList.add('entered');
+  setTimeout(() => pre.remove(), 1500);
+});
+
+const mat = (color, roughness = .55, metalness = 0) =>
+  new THREE.MeshStandardMaterial({ color, roughness, metalness });
+let renderer, scene, camera, monogram, halo, haloTwo, gallery, clock;
+let targetScroll = 0, scroll = 0, sceneReady = false;
+
+function makeArtwork(title, palette, variant) {
+  const c = document.createElement('canvas');
+  c.width = 900; c.height = 680;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 900, 680);
+  g.addColorStop(0, palette[0]); g.addColorStop(1, palette[1]);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 900, 680);
+  ctx.globalAlpha = .24;
+  for (let i = 0; i < 18; i++) {
+    ctx.beginPath();
+    ctx.ellipse(450 + Math.sin(i * 1.8) * (80 + i * 12), 340 + Math.cos(i * 1.3) * (50 + i * 10), 90 + i * 12, 35 + i * 8, i * .18, 0, Math.PI * 2);
+    ctx.strokeStyle = palette[(i % 2)]; ctx.lineWidth = 7 + (i % 3) * 3; ctx.stroke();
+  }
+  ctx.globalAlpha = .8;
+  if (variant === 0) {
+    ctx.fillStyle = '#c8b894'; ctx.fillRect(130, 90, 640, 500);
+    ctx.fillStyle = '#34372f'; ctx.fillRect(160, 120, 580, 440);
+    ctx.strokeStyle = '#d4c6a5'; ctx.lineWidth = 12;
+    for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(450, 340, 60 + i * 42, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.fillStyle = '#a79a7a'; ctx.fillRect(210, 475, 480, 12);
+  } else if (variant === 1) {
+    ctx.fillStyle = '#d4c6a5';
+    for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(130 + i * 130, 550); ctx.lineTo(280 + i * 90, 130 + (i % 2) * 90); ctx.lineTo(390 + i * 65, 550); ctx.fill(); }
+    ctx.fillStyle = '#292d29'; ctx.fillRect(0, 525, 900, 155);
+  } else {
+    ctx.strokeStyle = '#d8d0bd'; ctx.lineWidth = 22;
+    for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(450, 340, 75 + i * 75, .25, Math.PI * 1.8); ctx.stroke(); }
+    ctx.fillStyle = '#b9ad8e'; ctx.fillRect(410, 260, 80, 160);
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(244,241,232,.8)';
+  ctx.font = '22px Georgia'; ctx.fillText(title.toUpperCase(), 42, 635);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.Mesh(new THREE.PlaneGeometry(3.9, 2.95), new THREE.MeshStandardMaterial({ map: tex, roughness: .82 }));
+}
+
+function buildGallery() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x171713);
+  scene.fog = new THREE.FogExp2(0x171713, .022);
+  camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, .1, 100);
+  camera.position.set(0, 2.2, 9.5);
+  scene.add(new THREE.HemisphereLight(0xe1d8c4, 0x201e18, 1.55));
+  const key = new THREE.DirectionalLight(0xffe8c7, 3.2); key.position.set(-4, 8, 5); scene.add(key);
+  const fill = new THREE.PointLight(0xc7c4a8, 38, 28); fill.position.set(3, 5, -8); scene.add(fill);
+  const spot = new THREE.SpotLight(0xf4dfb7, 75, 24, Math.PI / 5, .65, 1.3);
+  spot.position.set(0, 7, 1); spot.target.position.set(0, 0, -2); scene.add(spot, spot.target);
+
+  gallery = new THREE.Group(); scene.add(gallery);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 65), mat(0x34332b, .32, .24));
+  floor.rotation.x = -Math.PI / 2; floor.position.set(0, -.12, -15); gallery.add(floor);
+  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(18, 65), mat(0x24241f, .85));
+  ceiling.rotation.x = Math.PI / 2; ceiling.position.set(0, 7, -15); gallery.add(ceiling);
+  const wallMaterial = mat(0x292923, .9);
+  for (const x of [-6.7, 6.7]) {
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(.38, 7.2, 38), wallMaterial);
+    wall.position.set(x, 3.4, -13); gallery.add(wall);
+    for (let z = 2; z > -32; z -= 7) {
+      const pilaster = new THREE.Mesh(new THREE.BoxGeometry(.28, 6.4, .5), mat(0x817b68, .6, .28));
+      pilaster.position.set(x + (x < 0 ? .22 : -.22), 3.1, z); gallery.add(pilaster);
+      const capital = new THREE.Mesh(new THREE.BoxGeometry(.78, .22, .9), mat(0xa79a7d, .52, .3));
+      capital.position.set(x + (x < 0 ? .22 : -.22), 6.35, z); gallery.add(capital);
+      const base = new THREE.Mesh(new THREE.BoxGeometry(.78, .28, .9), mat(0x8d846e, .6, .2));
+      base.position.set(x + (x < 0 ? .22 : -.22), .2, z); gallery.add(base);
+    }
+  }
+  // Entrance portal: layered stone frames establish scale and depth.
+  for (let i = 0; i < 3; i++) {
+    const portal = new THREE.Mesh(new THREE.BoxGeometry(11.8 - i * .45, 6.4 - i * .35, .22), mat(i === 0 ? 0x77705e : 0x49473d, .45, .3));
+    portal.position.set(0, 3.1, 1.2 - i * .3); gallery.add(portal);
+    const opening = new THREE.Mesh(new THREE.BoxGeometry(11.2 - i * .45, 5.8 - i * .35, .24), mat(0x24231e, .7));
+    opening.position.set(0, 3.1, 1.34 - i * .3); gallery.add(opening);
+  }
+
+  // A bespoke metal S sculpture: the first spatial signature of the studio.
+  const shape = new THREE.Shape();
+  shape.moveTo(1.05, 1.55);
+  shape.bezierCurveTo(.45, 2.05, -.55, 1.95, -.98, 1.25);
+  shape.bezierCurveTo(-1.42, .55, -.82, .05, -.12, -.25);
+  shape.bezierCurveTo(.62, -.55, 1.12, -.82, .82, -1.42);
+  shape.bezierCurveTo(.5, -2.02, -.58, -1.98, -1.12, -1.35);
+  shape.lineTo(-.72, -.92);
+  shape.bezierCurveTo(-.28, -1.35, .22, -1.48, .48, -1.12);
+  shape.bezierCurveTo(.78, -.72, .28, -.42, -.42, -.12);
+  shape.bezierCurveTo(-1.28, .28, -1.52, 1.02, -.92, 1.7);
+  shape.bezierCurveTo(-.25, 2.42, .85, 2.22, 1.38, 1.68);
+  shape.lineTo(1.05, 1.55);
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: .42, bevelEnabled: true, bevelSegments: 6, bevelSize: .09, bevelThickness: .09, curveSegments: 36 });
+  geo.computeVertexNormals();
+  monogram = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xbeb18e, metalness: .86, roughness: .2 }));
+  monogram.position.set(0, 3.1, -2.1); monogram.scale.setScalar(1.05); gallery.add(monogram);
+  halo = new THREE.Mesh(new THREE.TorusGeometry(2.45, .018, 8, 180), mat(0xc2b58f, .24, .8));
+  halo.position.set(0, 3.1, -2.3); halo.rotation.set(.6, .1, -.2); gallery.add(halo);
+  haloTwo = new THREE.Mesh(new THREE.TorusGeometry(2.75, .009, 6, 180), new THREE.MeshBasicMaterial({ color: 0xe0d1aa, transparent: true, opacity: .5 }));
+  haloTwo.position.copy(halo.position); haloTwo.rotation.set(-.4, .5, .3); gallery.add(haloTwo);
+  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.95, .55, 80), mat(0x555044, .26, .58));
+  plinth.position.set(0, .28, -2.1); gallery.add(plinth);
+  const plinthRing = new THREE.Mesh(new THREE.TorusGeometry(1.78, .025, 8, 120), mat(0xc0b28d, .25, .75));
+  plinthRing.rotation.x = Math.PI / 2; plinthRing.position.set(0, .57, -2.1); gallery.add(plinthRing);
+
+  // Wall-mounted artworks: actual image textures in deep architectural frames.
+  const exhibits = [
+    { z: -9, x: -6.42, title: 'Form / 01', colors: ['#6b6553', '#252a25'], v: 0, rot: Math.PI / 2 },
+    { z: -16, x: 6.42, title: 'Structure / 02', colors: ['#7a6047', '#242720'], v: 1, rot: -Math.PI / 2 },
+    { z: -23, x: -6.42, title: 'Intelligence / 03', colors: ['#555b4e', '#25251f'], v: 2, rot: Math.PI / 2 }
+  ];
+  for (const e of exhibits) {
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(4.35, 3.35, .24), mat(0x9b8965, .32, .62));
+    frame.position.set(e.x, 3.5, e.z); frame.rotation.y = e.rot; gallery.add(frame);
+    const art = makeArtwork(e.title, e.colors, e.v);
+    art.position.set(e.x + (e.x < 0 ? .14 : -.14), 3.5, e.z); art.rotation.y = e.rot; gallery.add(art);
+    const light = new THREE.PointLight(0xffdfad, 16, 7); light.position.set(e.x * .82, 5.8, e.z + 1); gallery.add(light);
+  }
+  // Recessed ceiling lights and subtle floor inlays.
+  for (let z = 1; z > -31; z -= 4) {
+    const lamp = new THREE.Mesh(new THREE.BoxGeometry(1.5, .05, .45), new THREE.MeshBasicMaterial({ color: 0xe4d4af }));
+    lamp.position.set(0, 6.92, z); gallery.add(lamp);
+    const pool = new THREE.PointLight(0xcbb991, 7, 8); pool.position.set(0, 5.8, z); gallery.add(pool);
+  }
+  for (let x of [-2.2, 2.2]) {
+    const inlay = new THREE.Mesh(new THREE.BoxGeometry(.018, .018, 36), mat(0x978a6b, .3, .6));
+    inlay.position.set(x, -.105, -14); gallery.add(inlay);
+  }
+  // Floating dust, kept deliberately subtle.
+  const dustGeo = new THREE.BufferGeometry();
+  const positions = new Float32Array(450 * 3);
+  for (let i = 0; i < 450; i++) {
+    positions[i * 3] = (Math.random() - .5) * 11;
+    positions[i * 3 + 1] = Math.random() * 6;
+    positions[i * 3 + 2] = -Math.random() * 34;
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  gallery.add(new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xd8c9a7, size: .025, transparent: true, opacity: .38, sizeAttenuation: true })));
+}
+
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.08;
+  clock = new THREE.Clock();
+  buildGallery();
+  sceneReady = true;
+} catch (err) {
+  console.error('Gallery could not initialise:', err);
+  $('#status').textContent = 'Gallery unavailable — use the project sections below';
+}
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function updateScroll() {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  targetScroll = max > 0 ? clamp(scrollY / max, 0, 1) : 0;
+}
+addEventListener('scroll', updateScroll, { passive: true });
+updateScroll();
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (!sceneReady) return;
+  const t = clock.getElapsedTime();
+  scroll += (targetScroll - scroll) * (reduced ? 1 : .055);
+  const s = scroll;
+  camera.position.x = Math.sin(s * Math.PI * 2) * .42;
+  camera.position.y = 2.25 + Math.sin(t * .22) * .025;
+  camera.position.z = 9.5 - s * 29;
+  camera.lookAt(Math.sin(s * Math.PI * 2) * .3, 2.5, camera.position.z - 7.5);
+  monogram.rotation.y = Math.sin(t * .2) * .12 + s * .25;
+  monogram.position.y = 3.1 + Math.sin(t * .4) * .035;
+  halo.rotation.z = t * .045;
+  haloTwo.rotation.z = -t * .03;
+  renderer.render(scene, camera);
+  const chapter = Math.min(5, Math.floor(s * 6));
+  const labels = ['THE ENTRANCE', 'A POINT OF VIEW', 'SELECTED WORK', 'CONNECTED DISCIPLINES', 'THE APPROACH', 'THE STUDIO'];
+  $('#chapterTag').innerHTML = '<b>' + String(chapter + 1).padStart(2, '0') + '</b> / ' + labels[chapter];
+  $('#progressText').textContent = String(chapter + 1).padStart(2, '0') + ' / 06';
+  $('#progressBar').style.width = (s * 100) + '%';
+  $('#heroCopy').style.opacity = clamp(1 - s * 8, 0, 1);
+  $('#heroCopy').style.transform = 'translateY(' + (-s * 70) + 'px)';
+  $('#rightNote').style.opacity = clamp(1 - s * 7, 0, 1);
+  $('#scrollHint').style.opacity = clamp(1 - s * 9, 0, 1);
+}
+animate();
+addEventListener('resize', () => {
+  if (!renderer || !camera) return;
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
+});
+
+const projects = {
+  macd: ['Hospitality / Digital ordering', 'Mac D & Shawarma', 'A digital menu experience connecting customers to the restaurant through a WhatsApp order draft.', 'https://saninatata.github.io/mac-d-menu/'],
+  nassets: ['Mobility / Energy / Web experience', 'Nassets Technology', 'A digital direction for a business connecting electric mobility and solar energy solutions with customers in Nigeria.', 'mailto:sanimansur24@gmail.com'],
+  studiolink: ['Independent product / Creative platform', 'StudioLink', 'A product concept for designers and architecture students to present ideas, connect and collaborate.', 'https://saninatata.github.io/studio-glow-hub/'],
+  kaoku: ['Real estate / Identity direction', 'Kaoku', 'A considered identity and digital direction for a real-estate venture.', 'mailto:sanimansur24@gmail.com']
+};
+const overlay = $('#overlay');
+document.querySelectorAll('[data-project]').forEach(button => button.addEventListener('click', () => {
+  const p = projects[button.dataset.project];
+  $('#dialogEyebrow').textContent = p[0]; $('#dialogTitle').textContent = p[1];
+  $('#dialogBody').textContent = p[2]; $('#dialogLink').href = p[3];
+  overlay.classList.add('open');
+}));
+function closeDialog() { overlay.classList.remove('open'); }
+$('#close').addEventListener('click', closeDialog);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeDialog(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDialog(); });
+
+let audioContext, masterGain, audioOn = false;
+$('#sound').addEventListener('click', async () => {
+  if (!audioContext) {
+    audioContext = new AudioContext(); masterGain = audioContext.createGain();
+    masterGain.gain.value = 0; masterGain.connect(audioContext.destination);
+    const low = audioContext.createOscillator(), high = audioContext.createOscillator();
+    const a = audioContext.createGain(), b = audioContext.createGain();
+    low.type = 'sine'; low.frequency.value = 55; high.type = 'triangle'; high.frequency.value = 82.4;
+    a.gain.value = .16; b.gain.value = .025;
+    low.connect(a).connect(masterGain); high.connect(b).connect(masterGain);
+    low.start(); high.start();
+  }
+  await audioContext.resume(); audioOn = !audioOn;
+  masterGain.gain.setTargetAtTime(audioOn ? .09 : 0, audioContext.currentTime, .8);
+  $('#sound').innerHTML = 'Sound <span>' + (audioOn ? 'on' : 'off') + '</span>';
+});
 </script>
 <canvas id="diamond-cursor-canvas" aria-hidden="true"></canvas>
 <script type="module" src="./assets/diamond-cursor.js"></script>
