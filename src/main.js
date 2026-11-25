@@ -83,6 +83,6 @@ $('#sound').addEventListener('click',async()=>{
     low.type='sine';low.frequency.value=55;high.type='triangle';high.frequency.value=82.4;
     lowGain.gain.value=.16;highGain.gain.value=.025;low.connect(lowGain).connect(gain);high.connect(highGain).connect(gain);low.start();high.start();
   }
-  await audioContext.resume();audioOn=!audioOn;gain.gain.setTargetAtTime(audioOn?.09:0,audioContext.currentTime,.8);
+  await audioContext.resume();audioOn=!audioOn;gain.gain.setTargetAtTime(audioOn ? 0.09 : 0,audioContext.currentTime,.8);
   $('#sound').innerHTML='Sound <span>'+(audioOn?'on':'off')+'</span>';
 });
