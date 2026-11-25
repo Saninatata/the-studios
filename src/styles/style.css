@@ -226,3 +226,8 @@ img { display: block; }
  .hero__piece:nth-child(6) { left: 86%; top: 43%; }
 }
 @media (prefers-reduced-motion: reduce) { .preloader__mark, .hero__piece { animation: none; opacity: 1; transform: none; } }
+
+.preloader { background: #f5f4f1; }
+.preloader__frame { width: min(78vw, 540px); height: min(68vh, 470px); overflow: visible; }
+.preloader__frame::after { display: none; }
+.preloader__canvas { display: block; width: 100%; height: 100%; outline: none; }
