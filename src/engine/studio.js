@@ -5,7 +5,7 @@ import * as THREE from 'three';
 export const WALL_Z = -27;
 export const FRAME_X = [-8.8, 8.8];
 
-export function buildStudio(PROJECTS) {
+export function buildStudio(PROJECTS, renderer) {
   const group = new THREE.Group(), parts = [];
   let seed = 7; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   const M = {
@@ -44,9 +44,17 @@ export function buildStudio(PROJECTS) {
     const side = i % 2 === 0 ? -1 : 1, row = Math.floor(i / 2);
     const z = 3 - row * 4.05, x = side * 9.34;
     const mat = new THREE.MeshBasicMaterial({ color: 0xf1eee8, toneMapped: false });
-    if (p.image) loader.load(p.image, (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true;
-    }, undefined, () => { p.imageFailed = true; });
+    if (p.image) {
+      const applyTexture = (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = Math.min(8,  renderer.capabilities.getMaxAnisotropy?.() || 4);
+        mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true;
+      };
+      loader.load(p.image, applyTexture, undefined, () => {
+        if (p.imageFallback && p.imageFallback !== p.image) loader.load(p.imageFallback, applyTexture, undefined, () => { p.imageFailed = true; });
+        else p.imageFailed = true;
+      });
+    }
     const g = new THREE.Group(); g.position.set(x, 4.55, z); g.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
     const slab = bx(3.25, 4.15, 0.14, M.glass); g.add(slab);
     const rim = new THREE.MeshStandardMaterial({ color: 0xb9b5ad, metalness: 0.82, roughness: 0.2 });
@@ -68,7 +76,7 @@ export function buildStudio(PROJECTS) {
   return {
     group, frames,
     assemble(p) { for (const o of parts) { const u = o.userData, k = ease(clamp((p - u.a) / (u.b - u.a))), f = 1 - k; o.visible = k > 0; o.position.set(u.t[0] + u.o[0] * f, u.t[1] + u.o[1] * f, u.t[2] + u.o[2] * f); o.rotation.set(u.r[0] * f * 2.4 * u.spin, u.r[1] * f * 2.4 * u.spin, u.r[2] * f * 1.6 * u.spin); } },
-    light(focus, lamps) { frames.forEach((f, i) => f.mat.color.setScalar(focus < 0 ? 1 : i === focus ? 1 : 0.72)); M.lamp.color.setScalar(0.4 + lamps * 4.2); lights.forEach((l) => (l.intensity = lamps * 65)); },
+    light(focus, lamps) { frames.forEach((f, i) => f.mat.color.setScalar(focus < 0 ? 1 : i === focus ? 1 : 0.72)); M.lamp.color.setScalar(0.22 + lamps * 1.25); lights.forEach((l) => (l.intensity = lamps * 12)); },
     drift(dt) { const a = dust.geometry.attributes.position; for (let i = 1; i < N * 3; i += 3) { a.array[i] += dt * 0.1; if (a.array[i] > 9) a.array[i] = 0; } a.needsUpdate = true; },
   };
 }
