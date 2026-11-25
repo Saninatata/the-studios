@@ -175,3 +175,6 @@ img { display: block; }
 .overlay__nav button:hover, .overlay__nav a:hover { opacity: .55; }
 .card__img img { background: #e9e5dc; }
 @media (max-width: 767px) { .overlay__nav { position: static; transform: none; justify-content: space-between; gap: 12px; order: 4; } }
+
+.overlay__figure iframe { display: block; width: 100%; height: min(62vh, 560px); border: 0; border-radius: calc(var(--u) * 16); background: #fff; }
+.overlay__figure iframe[hidden], .overlay__figure img[hidden] { display: none; }
