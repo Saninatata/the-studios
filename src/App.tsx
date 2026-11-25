@@ -50,7 +50,7 @@ export default function App() {
           <h2 className="overlay__title display" id="ovTitle"></h2>
           <p className="overlay__label" id="ovLabel"></p>
         </div>
-        <figure className="overlay__figure glass"><img id="ovImg" alt="" /></figure>
+        <figure className="overlay__figure glass"><img id="ovImg" alt="" /><iframe id="ovFrame" title="Live website preview" loading="lazy" hidden></iframe></figure>
         <div className="overlay__right" id="ovText"></div>
       </div>
 
