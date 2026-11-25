@@ -1,6 +1,7 @@
 /* The Studios — engine. Scroll is the clock: p goes 0 → 1 down the page and everything (the build, the camera,
    the texts, the sound) is a function of p. Nothing here is a film: the studio is real geometry assembled live. */
 import * as THREE from 'three';
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { SCENES, CHAPTERS, PROJECTS, HINT_WORDS } from './content.js';
 import { buildStudio, WALL_Z } from './studio.js';
@@ -214,11 +215,48 @@ export async function start() {
     if (entered && !document.hidden && dt < 0.25 && ++frames > 40) { if (dt > 0.026) slow++; if (frames % 90 === 0) { if (slow > 30 && ratio > 1) { ratio = Math.max(1, ratio - 0.25); resize(); } slow = 0; } }
   }
 
-  /* ---------- Preloader ---------- */
+  /* ---------- Preloader: separate real 3D glass monogram ---------- */
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; scrollTo(0, 0);
   const pre = el('preloader'), preCount = el('preCount'), preStatus = el('preStatus'), t0 = performance.now();
   let shown = 0, compiled = false;
   renderer.compileAsync(scene, camera).catch(() => {}).then(() => { compiled = true; });
+  const logoCanvas = el('logoGl');
+  let logoRenderer = null, logoScene = null, logoCamera = null, logoObject = null, logoFrame = 0;
+  try {
+    logoRenderer = new THREE.WebGLRenderer({ canvas: logoCanvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+    logoRenderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
+    logoRenderer.setSize(logoCanvas.clientWidth || innerWidth, logoCanvas.clientHeight || innerHeight, false);
+    logoRenderer.toneMapping = THREE.ACESFilmicToneMapping; logoRenderer.toneMappingExposure = 1.15;
+    logoScene = new THREE.Scene();
+    logoCamera = new THREE.PerspectiveCamera(32, (logoCanvas.clientWidth || innerWidth) / (logoCanvas.clientHeight || innerHeight), 0.1, 100);
+    logoCamera.position.set(0, 0, 15);
+    const logoPm = new THREE.PMREMGenerator(logoRenderer);
+    logoScene.environment = logoPm.fromScene(new RoomEnvironment(), 0.04).texture;
+    logoScene.add(new THREE.HemisphereLight(0xffffff, 0x9ba4b3, 1.5));
+    const logoKey = new THREE.DirectionalLight(0xffffff, 4.2); logoKey.position.set(-5, 8, 10); logoScene.add(logoKey);
+    const logoRim = new THREE.PointLight(0x9dcaff, 26, 24); logoRim.position.set(5, -2, 5); logoScene.add(logoRim);
+    const logoWarm = new THREE.PointLight(0xffffff, 18, 20); logoWarm.position.set(-4, -5, 3); logoScene.add(logoWarm);
+    const svgText = await fetch('/studios-mark.svg').then(r => { if (!r.ok) throw new Error('Logo SVG unavailable'); return r.text(); });
+    const parsed = new SVGLoader().parse(svgText), logoGroup = new THREE.Group();
+    for (const path of parsed.paths) for (const shape of SVGLoader.createShapes(path)) {
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.42, bevelEnabled: true, bevelSegments: 5, steps: 1, bevelSize: 0.07, bevelThickness: 0.07, curveSegments: 20 });
+      geo.computeVertexNormals();
+      const glass = new THREE.MeshPhysicalMaterial({ color: 0xeaf3ff, metalness: 0.08, roughness: 0.055, transmission: 0.94, thickness: 1.8, ior: 1.48, clearcoat: 1, clearcoatRoughness: 0.035, envMapIntensity: 2.1, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(geo, glass); mesh.position.z = -0.21; logoGroup.add(mesh);
+      mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 28), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.48 })));
+    }
+    logoGroup.scale.setScalar(0.021); logoGroup.rotation.x = Math.PI;
+    const box = new THREE.Box3().setFromObject(logoGroup); logoGroup.position.sub(box.getCenter(new THREE.Vector3()));
+    logoObject = new THREE.Group(); logoObject.add(logoGroup); logoScene.add(logoObject);
+    logoPm.dispose();
+    const resizeLogo = () => { if (!logoRenderer || !logoCamera) return; const w=logoCanvas.clientWidth||innerWidth,h=logoCanvas.clientHeight||innerHeight; logoRenderer.setSize(w,h,false); logoCamera.aspect=w/h; logoCamera.updateProjectionMatrix(); };
+    addEventListener('resize', resizeLogo);
+    const spin = (now) => { if (!logoRenderer || !logoObject) return; logoObject.rotation.y=now*0.00048; logoObject.rotation.x=Math.sin(now*0.00032)*0.055; logoObject.rotation.z=Math.sin(now*0.0002)*0.025; logoRenderer.render(logoScene,logoCamera); logoFrame=requestAnimationFrame(spin); };
+    logoFrame=requestAnimationFrame(spin);
+  } catch (error) {
+    console.warn('Glass logo renderer unavailable:', error); logoCanvas.style.display='none';
+    const fallback=document.createElement('img'); fallback.src='/studios-mark.svg'; fallback.alt='The Studios monogram'; fallback.className='preloader__mark'; el('preFrame').append(fallback);
+  }
   (function tick(now) {
     const u = clamp((now - t0) / 3000), eased = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
     const goal = Math.min(compiled ? 100 : 92, eased * 100);
@@ -227,6 +265,8 @@ export async function start() {
     preCount.textContent = String(n).padStart(3, '0'); preStatus.textContent = n < 34 ? 'Ground' : n < 90 ? 'Structure' : 'Light';
     pre.style.setProperty('--load', shown.toFixed(1));
     if (shown >= 100) {
+      cancelAnimationFrame(logoFrame);
+      if (logoRenderer) { logoRenderer.dispose(); logoRenderer = null; }
       renderer.setAnimationLoop(loop);
       document.body.classList.remove('is-loading');
       el('hero').classList.add('is-on');
