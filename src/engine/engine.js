@@ -102,7 +102,11 @@ export async function start() {
     el('ovYear').textContent = [pr.category || pr.kind, pr.date, pr.medium].filter(Boolean).join('  /  ');
     el('ovTitle').textContent = pr.name;
     el('ovLabel').textContent = [pr.creator, pr.date].filter(Boolean).join(' · ');
-    Object.assign(el('ovImg'), { src: pr.image || '', alt: pr.name });
+    const liveFrame = el('ovFrame'), stillImage = el('ovImg');
+    const isWebsite = pr.kind === 'website';
+    liveFrame.hidden = !isWebsite; stillImage.hidden = isWebsite;
+    if (isWebsite) liveFrame.src = pr.source;
+    else { liveFrame.src = 'about:blank'; Object.assign(stillImage, { src: pr.image || '', alt: pr.name }); }
     el('ovText').innerHTML = `<p>${pr.description || ''}</p><p>Creator / studio: ${pr.creator || 'Not credited on the source page'}.</p><p>Original source: ${pr.kind === 'art' ? 'The Metropolitan Museum of Art — Open Access collection.' : 'Original project / website.'}</p>`;
     const source = el('ovSource'); source.href = pr.source || '#'; source.hidden = !pr.source;
     lastFocus = document.activeElement; lastFocusIndex = PROJECTS.indexOf(pr);
