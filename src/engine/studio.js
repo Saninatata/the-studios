@@ -54,11 +54,10 @@ export function buildStudio(PROJECTS) {
       const edge = bx(w,h,.2,rim); edge.position.set(px,py,.08); g.add(edge);
     }
     const art = new THREE.Mesh(new THREE.PlaneGeometry(3.08, 3.92), mat); art.position.z = .11; g.add(art);
-    const a = 0.5; add(g, [x, 4.55, z], [a, a + 0.04], [0, 0, 0], 0.1);
+    group.add(g);
     return { mat, x, z, side, mesh: g };
   });
   const strips = [];
-  frames.forEach((f) => group.add(f.mesh));
   for (let i = 0; i < 4; i++) { const a = 0.8 + i * 0.02, s = add(bx(6, 0.07, 0.07, M.lamp), [(i - 1.5) * 4, 8, -13], [a, a + 0.05], [0, 6, 0], 0.2); strips.push(s); }
   const lights = [-8.8, 8.8].map((x) => { const l = new THREE.PointLight(0xfff1de, 0, 35, 1.4); l.position.set(x * 0.8, 7.4, -13); group.add(l); return l; });
   const N = 420, pp = new Float32Array(N * 3);
