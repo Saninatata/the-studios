@@ -78,10 +78,6 @@ img { display: block; }
 .card:hover .card__img img { transform: scale(1.05); }
 .card__cap { font-size: max(calc(var(--u) * 13), 11px); padding: 0 calc(var(--u) * 4) calc(var(--u) * 2); }
 
-/* ---- Actions ---- */
-.actions { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: calc(var(--u) * 16); opacity: 0; visibility: hidden; transition: opacity var(--fade) var(--ease), visibility 0s linear var(--fade); }
-.actions.is-on { opacity: 1; visibility: visible; transition-delay: 0s; }
-
 /* ---- Rail ---- */
 .rail { position: absolute; left: var(--pad); bottom: var(--pad); display: flex; gap: calc(var(--u) * 20); opacity: 0; visibility: hidden; transition: opacity var(--fade) var(--ease), visibility 0s linear var(--fade); }
 .stage.has-rail .rail { opacity: 1; visibility: visible; transition-delay: 0s; }
@@ -178,3 +174,6 @@ img { display: block; }
 
 .overlay__figure iframe { display: block; width: 100%; height: min(62vh, 560px); border: 0; border-radius: calc(var(--u) * 16); background: #fff; }
 .overlay__figure iframe[hidden], .overlay__figure img[hidden] { display: none; }
+
+/* Softer gallery illumination and reduced visual glare */
+.pill, .glass { box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 14px 36px -20px rgba(20,20,20,.2); }
