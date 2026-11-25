@@ -35,7 +35,7 @@ export async function start() {
   /* Fetch only public-domain object records from The Met; never substitute drawn stand-ins. */
   await Promise.all(PROJECTS.filter((p) => p.metId).map(async (p) => {
     try {
-      const r = await fetch('https://collectionapi.metmuseum.org/public/collection/v1/objects/' + p.metId);
+      const r = await fetch('https://collectionapi.metmuseum.org/public/collection/v1/objects/' + p.metId, { signal: AbortSignal.timeout(8000) });
       if (!r.ok) throw new Error('Met API unavailable');
       const data = await r.json();
       if (!data.isPublicDomain || !data.primaryImageSmall) throw new Error('No open-access image');
