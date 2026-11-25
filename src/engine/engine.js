@@ -89,36 +89,42 @@ export async function start() {
     const on = p >= PROJECTS[0].at[0] && p < PROJECTS[PROJECTS.length - 1].at[1];
     card.classList.toggle('is-on', on);
     const f = on ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
-    if (f !== focus) { focus = f; if (f >= 0) { cardImg.src = PROJECTS[f].image; cardCap.textContent = String(f + 1).padStart(2, '0') + ' / ' + PROJECTS.length + ' — ' + PROJECTS[f].caption; } }
+    if (f !== focus) { focus = f; if (f >= 0) { cardImg.src = PROJECTS[f].image || ''; cardImg.alt = PROJECTS[f].name; cardCap.textContent = String(f + 1).padStart(2, '0') + ' / ' + PROJECTS.length + ' — ' + PROJECTS[f].caption; } }
     actions.classList.toggle('is-on', inRange(p, ACTIONS_RANGE));
     const w = HINT_WORDS.find(([from]) => p >= from)[1]; if (w !== hintWord.textContent) hintWord.textContent = w;
     hint.style.opacity = p > 0.02 && p < 0.9 ? 0 : 1;
     const ch = CHAPTERS.findIndex((c) => inRange(p, c.range)); if (ch !== lastChapter) { lastChapter = ch; if (ch >= 0) Sound.chime(ch); }
   }
 
-  /* Overlay: the piece in focus, full size on glass */
+  /* Overlay: one selected piece, with original credit and source navigation. */
   let lastFocus = null, lastFocusIndex = -1;
   function openOverlay(pr) {
-    const o = pr.overlay;
-    el('ovYear').textContent = o.year; el('ovTitle').textContent = o.title; el('ovLabel').innerHTML = o.label.join('<br>');
-    Object.assign(el('ovImg'), { src: pr.image, alt: pr.name }); el('ovText').innerHTML = o.text.map((t) => `<p>${t}</p>`).join('');
-    lastFocus = document.activeElement; overlay.hidden = false; document.body.classList.add('is-locked'); stage.classList.add('is-veiled');
+    el('ovYear').textContent = [pr.category || pr.kind, pr.date, pr.medium].filter(Boolean).join('  /  ');
+    el('ovTitle').textContent = pr.name;
+    el('ovLabel').textContent = [pr.creator, pr.date].filter(Boolean).join(' · ');
+    Object.assign(el('ovImg'), { src: pr.image || '', alt: pr.name });
+    el('ovText').innerHTML = `<p>${pr.description || ''}</p><p>Creator / studio: ${pr.creator || 'Not credited on the source page'}.</p><p>Original source: ${pr.kind === 'art' ? 'The Metropolitan Museum of Art — Open Access collection.' : 'Original project / website.'}</p>`;
+    const source = el('ovSource'); source.href = pr.source || '#'; source.hidden = !pr.source;
+    lastFocus = document.activeElement; lastFocusIndex = PROJECTS.indexOf(pr);
+    overlay.hidden = false; document.body.classList.add('is-locked'); stage.classList.add('is-veiled');
     requestAnimationFrame(() => overlay.classList.add('is-on')); el('ovClose').focus({ preventScroll: true });
   }
   function closeOverlay() {
     if (overlay.hidden) return; overlay.classList.remove('is-on'); document.body.classList.remove('is-locked'); stage.classList.remove('is-veiled');
     setTimeout(() => { overlay.hidden = true; }, 500); if (lastFocus) lastFocus.focus({ preventScroll: true });
   }
-  card.addEventListener('click', () => openOverlay(PROJECTS[Math.max(0, focus)]));
   const moveOverlay = (step) => { const next = (lastFocusIndex + step + PROJECTS.length) % PROJECTS.length; openOverlay(PROJECTS[next]); };
+  card.addEventListener('click', () => { if (focus >= 0) openOverlay(PROJECTS[focus]); });
   el('ovPrev').addEventListener('click', () => moveOverlay(-1));
   el('ovNext').addEventListener('click', () => moveOverlay(1));
   el('ovClose').addEventListener('click', closeOverlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOverlay(); });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeOverlay();\n    if (!overlay.hidden && e.key === 'ArrowLeft') moveOverlay(-1);\n    if (!overlay.hidden && e.key === 'ArrowRight') moveOverlay(1);
-    if (e.key === 'Tab' && !overlay.hidden) { const it = [...overlay.querySelectorAll('button')], a = it[0], z = it[it.length - 1];
-      if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
+    if (e.key === 'Escape') closeOverlay();
+    if (!overlay.hidden && e.key === 'ArrowLeft') moveOverlay(-1);
+    if (!overlay.hidden && e.key === 'ArrowRight') moveOverlay(1);
+    if (e.key === 'Tab' && !overlay.hidden) { const it = [...overlay.querySelectorAll('button, a')].filter((x) => !x.hidden), first = it[0], last = it[it.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } }
   });
 
   /* Cursor: ring + dot; "View" over the card */
@@ -178,15 +184,17 @@ export async function start() {
     const fi = p >= PROJECTS[0].at[0] && p < PROJECTS[PROJECTS.length - 1].at[1] ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
     studio.light(fi, lampsOn); studio.drift(dt);
 
-    /* Camera: a long dolly down the hall; in Craft it slides to each piece and moves in on it; at the end it lifts and pulls back to show the whole studio. */
-    const travel = smooth(clamp(p / 0.82)), fin = sstep(0.9, 1, p), dive = sstep(0.6, 0.8, p);
-    const aim = fi >= 0 ? studio.frames[fi].x * 0.7 : 0;
-    camX += (aim * sstep(0.58, 0.64, p) * (1 - sstep(0.8, 0.86, p)) - camX) * (1 - Math.exp(-dt * 2.4));
+    /* The camera follows the selected piece down the two-sided exhibition hall. */
+    const travel = smooth(clamp(p / 0.96)), fin = sstep(0.95, 1, p);
+    const frame = fi >= 0 ? studio.frames[fi] : null;
+    const aimX = frame ? frame.x * 0.55 : 0;
+    const aimZ = frame ? frame.z + 5.4 : lerp(17, -35, travel);
+    camX += (aimX - camX) * (1 - Math.exp(-dt * 2.6));
     mouse.sx += (mouse.x - mouse.sx) * (1 - Math.exp(-dt * 3)); mouse.sy += (mouse.y - mouse.sy) * (1 - Math.exp(-dt * 3));
     const free = fine && !reduced ? 1 - fin : 0;
-    camera.position.set(camX + mouse.sx * 1.3 * free, lerp(2.5, 3.1, travel) + fin * 13 - mouse.sy * 0.7 * free, lerp(17, -7, travel) - dive * 3 + fin * 46);
-    camera.lookAt(camX * 0.8, lerp(3.2, 4.3, travel) - fin * 2.4, WALL_Z + fin * 16);
-    camera.fov = lerp(52, 41, sstep(0.58, 0.78, p)) + fin * 11; camera.updateProjectionMatrix();
+    camera.position.set(camX + mouse.sx * 0.45 * free, 4.2 + fin * 12 - mouse.sy * 0.25 * free, aimZ + fin * 24);
+    camera.lookAt(frame ? frame.x * 0.9 : camX * 0.8, 4.55 - fin * 2.4, frame ? frame.z : aimZ - 13);
+    camera.fov = frame ? 42 : 52; camera.fov += fin * 11; camera.updateProjectionMatrix();
 
     ui(p); lens.render(elapsed, open, rush);
   }
