@@ -75,10 +75,6 @@ export async function start() {
   let leap = false, glide = null, current = 0, target = 0, hold = null;
   const toProgress = (p) => { leap = true; scrollTo({ top: p * maxScroll(), behavior: reduced ? 'auto' : 'smooth' }); };
   el('logo').addEventListener('click', (e) => { e.preventDefault(); toProgress(0); });
-  el('againBtn').addEventListener('click', () => {
-    if (reduced) return scrollTo(0, 0);
-    glide = { from: scrollY, to: 0, start: performance.now(), ms: AGAIN_MS };
-  });
   const stepGlide = (now) => { if (!glide) return; const u = clamp((now - glide.start) / glide.ms); scrollTo(0, lerp(glide.from, glide.to, smooth(u))); if (u >= 1) glide = null; };
   ['wheel', 'touchstart', 'keydown'].forEach((t) => addEventListener(t, () => { glide = null; leap = false; }, { passive: true }));
 
