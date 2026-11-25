@@ -43,7 +43,8 @@ export default function App() {
       </main>
 
       <div className="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="ovTitle" hidden>
-        <button className="overlay__close caps" type="button" id="ovClose">Close <span>(Esc)</span></button>\n        <nav className="overlay__nav"><button className="caps" type="button" id="ovPrev">← Previous</button><a className="caps" id="ovSource" href="#" target="_blank" rel="noreferrer">Original source ↗</a><button className="caps" type="button" id="ovNext">Next →</button></nav>
+        <button className="overlay__close caps" type="button" id="ovClose">Close <span>(Esc)</span></button>
+        <nav className="overlay__nav"><button className="caps" type="button" id="ovPrev">← Previous</button><a className="caps" id="ovSource" href="#" target="_blank" rel="noreferrer">Original source ↗</a><button className="caps" type="button" id="ovNext">Next →</button></nav>
         <div className="overlay__left">
           <p className="overlay__year" id="ovYear"></p>
           <h2 className="overlay__title display" id="ovTitle"></h2>
