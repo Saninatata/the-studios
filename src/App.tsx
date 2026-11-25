@@ -11,7 +11,7 @@ export default function App() {
     <>
       <div className="preloader" id="preloader" role="status" aria-live="polite">
         <p className="preloader__top caps">Design Authority</p>
-        <div className="preloader__frame" id="preFrame"><img className="preloader__mark" src="/studios-mark.svg" alt="The Studios monogram" /></div>
+        <div className="preloader__frame" id="preFrame"><canvas className="preloader__canvas" id="logoGl" aria-label="The Studios glass monogram loading animation"></canvas></div>
         <div className="preloader__enter" id="preEnter" hidden>
           <button className="pill display" id="enterBtn" type="button">Enter</button>
           <Sound />
