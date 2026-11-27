@@ -9,7 +9,7 @@ export function buildStudio(PROJECTS) {
   const M = {
     ceramic: new THREE.MeshStandardMaterial({ color: 0xe5e2dc, roughness: 0.78 }),
     stone: new THREE.MeshStandardMaterial({ color: 0xc9c5bc, roughness: 0.86 }),
-    glass: new THREE.MeshStandardMaterial({ color: 0xd4d0c8, roughness: 0.52, metalness: 0.12 }),
+    glass: new THREE.MeshPhysicalMaterial({ color: 0xf5f7f8, roughness: 0.075, metalness: 0.04, transmission: 0.88, thickness: 0.65, ior: 1.46, transparent: true, opacity: 0.72, envMapIntensity: 1.35, clearcoat: 1, clearcoatRoughness: 0.045 }),
     frost: new THREE.MeshStandardMaterial({ color: 0xe9e6df, roughness: 0.82 }),
     chrome: new THREE.MeshStandardMaterial({ color: 0x77736b, metalness: 0.48, roughness: 0.38 }),
     lamp: new THREE.MeshBasicMaterial({ color: new THREE.Color().setScalar(0.4), toneMapped: false }),
@@ -40,17 +40,17 @@ export function buildStudio(PROJECTS) {
     const side = i%2===0 ? -1 : 1, row=Math.floor(i/2), z=10-row*4.7;
     const frame = new THREE.Group();
     const width=3.55,height=2.65;
-    const backing=bx(width+.28,height+.28,.16,M.chrome); backing.position.z=-.08; frame.add(backing);
-    const mat=new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false});
+    const backing=bx(width+.28,height+.28,.12,M.chrome); backing.position.z=-.075; frame.add(backing);
+    const mat=new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false, side:THREE.FrontSide});
     const art=new THREE.Mesh(new THREE.PlaneGeometry(width,height),mat); art.position.z=.02; frame.add(art);
     const railMat=M.chrome;
     for(const [w,h,x,y] of [[width+.18,.055,0,height/2+.09],[width+.18,.055,0,-height/2-.09],[.055,height+.18,width/2+.09,0],[.055,height+.18,-width/2-.09,0]]){
       const edge=bx(w,h,.11,railMat);edge.position.set(x,y,.04);frame.add(edge);
     }
-    frame.position.set(side*9.52,4.55,z);
+    frame.position.set(side*9.515,4.55,z);
     frame.rotation.y=side===-1?Math.PI/2:-Math.PI/2;
     const a=p.at[0];
-    add(frame,[side*9.52,4.55,z],[a,a+.075],[(side*-5),3,12],.75);
+    add(frame,[side*9.515,4.55,z],[a,a+.075],[(side*-5),3,12],.75);
     p.image=p.image||'';
     const imageUrl=p.image;
     if(imageUrl){
@@ -61,7 +61,7 @@ export function buildStudio(PROJECTS) {
         if(url){p.image=url;loader.load(url,tex=>{tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=8;mat.map=tex;mat.needsUpdate=true;},undefined,()=>{});}
       }).catch(()=>{});
     }
-    return {mat,x:side*9.52,z,y:4.55,side};
+    return {mat,x:side*9.515,z,y:4.55,side};
   });
   const lights=[-8,0,8].map(x=>{const l=new THREE.PointLight(0xfff4e8,0,24,2);l.position.set(x,6.2,-12);group.add(l);return l;});
   const N=420,pp=new Float32Array(N*3);
