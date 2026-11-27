@@ -31,15 +31,15 @@ async function run(opts, ctl) {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); if (!renderer.capabilities.isWebGL2) throw 0; }
   catch { el('noGl').classList.add('is-on'); return; }
-  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 0.82;
   const scene = new THREE.Scene(), bg = new THREE.Color('#f5f4f1');
   scene.background = bg; scene.fog = new THREE.FogExp2(bg, 0.014);
   const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 220);
 
   const pm = new THREE.PMREMGenerator(renderer);
-  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.95; pm.dispose();
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe6f0, 0.5));
-  const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(-9, 18, 12); scene.add(key);
+  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.48; pm.dispose();
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d1c5, 0.34));
+  const key = new THREE.DirectionalLight(0xfff8ed, 0.62); key.position.set(-9, 18, 12); scene.add(key);
 
   await Promise.all([document.fonts.load('128px "Instrument Serif"'), document.fonts.load('22px "Geist Variable"')]).catch(() => {});
   if (ctl.disposed) { renderer.dispose(); return; }
@@ -173,13 +173,13 @@ async function run(opts, ctl) {
     /* Camera: a long dolly down the hall; in Craft it slides to each piece and moves in on it; at the end it lifts and pulls back to show the whole studio. */
     const travel = smooth(clamp(p / 0.82)), fin = sstep(0.9, 1, p), dive = sstep(0.6, 0.8, p);
     const activeFrame = fi >= 0 ? studio.frames[fi] : null;
-    const aim = activeFrame ? activeFrame.x * 0.72 : 0;
-    const aimZ = activeFrame ? activeFrame.z + 1.5 : WALL_Z;
+    const aim = activeFrame ? activeFrame.x - activeFrame.side * 2.8 : 0;
+    const aimZ = activeFrame ? activeFrame.z + 0.35 : WALL_Z;
     camX += (aim - camX) * (1 - Math.exp(-dt * 2.4));
     mouse.sx += (mouse.x - mouse.sx) * (1 - Math.exp(-dt * 3)); mouse.sy += (mouse.y - mouse.sy) * (1 - Math.exp(-dt * 3));
     const free = fine && !reduced ? 1 - fin : 0;
     camera.position.set(camX + mouse.sx * 1.3 * free, lerp(2.5, 3.1, travel) + fin * 13 - mouse.sy * 0.7 * free, activeFrame ? aimZ + 2.8 : lerp(17, -7, travel) - dive * 3 + fin * 46);
-    camera.lookAt(activeFrame ? activeFrame.x * 0.96 : camX * 0.8, activeFrame ? activeFrame.y : lerp(3.2, 4.3, travel) - fin * 2.4, activeFrame ? activeFrame.z : WALL_Z + fin * 16);
+    camera.lookAt(activeFrame ? activeFrame.x : camX * 0.8, activeFrame ? activeFrame.y : lerp(3.2, 4.3, travel) - fin * 2.4, activeFrame ? activeFrame.z : WALL_Z + fin * 16);
     camera.fov = lerp(52, 41, sstep(0.58, 0.78, p)) + fin * 11; camera.updateProjectionMatrix();
 
     ui(p); lens.render(elapsed, open, rush);
