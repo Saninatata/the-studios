@@ -4,6 +4,7 @@ export type Route = { name: 'home' | 'services' | 'work' | 'case' | 'museum' | '
 
 /** Hash routes (#/services, #/work/renderit …): they work on GitHub Pages and any static host with no server setup. */
 export function parse(hash: string): Route {
+  if (hash && !hash.startsWith('#/')) return { name: 'home' };
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const [a, b] = parts;
   if (!a) return { name: 'home' };
