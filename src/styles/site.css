@@ -131,3 +131,20 @@ button.chip:hover { transform: translateY(-2px); }
   .svc__head { padding: 20px; gap: 12px; } .svc__body > div { padding: 0 20px; }
 }
 @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } .orb, .page { animation: none; } }
+
+/* Curated museum / exhibition */
+.museum-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:54px 24px}
+.museum-piece{min-width:0}
+.museum-image{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;overflow:hidden;border-radius:22px;background:rgba(255,255,255,.62);border:1px solid var(--edge);padding:16px}
+.museum-image img{width:100%;height:100%;object-fit:contain;transition:transform .8s var(--ease)}
+.museum-image:hover img{transform:scale(1.035)}
+.museum-loading{font-size:12px;color:var(--ink-50)}
+.museum-preview{width:100%;height:100%;padding:24px;display:flex;flex-direction:column;justify-content:space-between;background:#e7e4dc;color:#171715}
+.museum-preview--identitygraphicdesign{background:#d8d5cc}.museum-preview--webdesign{background:#e1e8e5}
+.museum-preview span,.museum-preview small{font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.museum-preview strong{font:400 clamp(30px,4.5vw,64px)/.9 "Instrument Serif",Georgia,serif;max-width:90%}
+.museum-caption{padding:18px 4px 0}.museum-caption .eyebrow{font-size:9px}
+.museum-caption h2{font:400 clamp(25px,3vw,38px)/1 "Instrument Serif",Georgia,serif;margin:12px 0 8px}
+.museum-caption p{font-size:13px;line-height:1.55;color:var(--ink-70);margin:0 0 9px}
+.museum-caption .museum-description{max-width:38em;margin:12px 0}.museum-caption .link{display:inline-block;margin-top:8px;font-size:11px}
+@media(max-width:767px){.museum-grid{grid-template-columns:1fr;gap:38px}.museum-image{aspect-ratio:4/3}}
