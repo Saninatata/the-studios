@@ -79,7 +79,7 @@ async function run(opts, ctl) {
     for (const s of SCENES) { const on = inRange(p, s.range); s.el.classList.toggle('is-on', on); s.bodyEl.classList.toggle('is-on', s.bodyRange ? inRange(p, s.bodyRange) : on); }
     stage.classList.toggle('has-rail', p > 0.06 && p < 0.94);
     railItems.forEach((b, i) => { const [a, z] = CHAPTERS[i].range; b.style.setProperty('--p', clamp((p - a) / (z - a)).toFixed(3)); b.classList.toggle('is-current', p >= a && p < z); });
-    const on = p > PROJECTS[0].at[0] - 0.01 && p < PROJECTS[2].at[1];
+    const on = p >= PROJECTS[0].at[0] - 0.01 && p < PROJECTS[PROJECTS.length - 1].at[1];
     card.classList.toggle('is-on', on);
     const f = on ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
     if (f !== focus) { focus = f; if (f >= 0) { cardImg.src = PROJECTS[f].image; cardCap.textContent = PROJECTS[f].caption; } }
@@ -166,17 +166,19 @@ async function run(opts, ctl) {
 
     studio.assemble(p);
     const lampsOn = sstep(0.8, 0.9, p);
-    const fi = p > 0.58 && p < 0.82 ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
+    const fi = p >= PROJECTS[0].at[0] && p < PROJECTS[PROJECTS.length - 1].at[1] ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
     studio.light(fi, lampsOn); studio.drift(dt);
 
     /* Camera: a long dolly down the hall; in Craft it slides to each piece and moves in on it; at the end it lifts and pulls back to show the whole studio. */
     const travel = smooth(clamp(p / 0.82)), fin = sstep(0.9, 1, p), dive = sstep(0.6, 0.8, p);
-    const aim = fi >= 0 ? studio.frames[fi].x * 0.7 : 0;
-    camX += (aim * sstep(0.58, 0.64, p) * (1 - sstep(0.8, 0.86, p)) - camX) * (1 - Math.exp(-dt * 2.4));
+    const activeFrame = fi >= 0 ? studio.frames[fi] : null;
+    const aim = activeFrame ? activeFrame.x * 0.72 : 0;
+    const aimZ = activeFrame ? activeFrame.z + 1.5 : WALL_Z;
+    camX += (aim - camX) * (1 - Math.exp(-dt * 2.4));
     mouse.sx += (mouse.x - mouse.sx) * (1 - Math.exp(-dt * 3)); mouse.sy += (mouse.y - mouse.sy) * (1 - Math.exp(-dt * 3));
     const free = fine && !reduced ? 1 - fin : 0;
-    camera.position.set(camX + mouse.sx * 1.3 * free, lerp(2.5, 3.1, travel) + fin * 13 - mouse.sy * 0.7 * free, lerp(17, -7, travel) - dive * 3 + fin * 46);
-    camera.lookAt(camX * 0.8, lerp(3.2, 4.3, travel) - fin * 2.4, WALL_Z + fin * 16);
+    camera.position.set(camX + mouse.sx * 1.3 * free, lerp(2.5, 3.1, travel) + fin * 13 - mouse.sy * 0.7 * free, activeFrame ? aimZ + 2.8 : lerp(17, -7, travel) - dive * 3 + fin * 46);
+    camera.lookAt(activeFrame ? activeFrame.x * 0.96 : camX * 0.8, activeFrame ? activeFrame.y : lerp(3.2, 4.3, travel) - fin * 2.4, activeFrame ? activeFrame.z : WALL_Z + fin * 16);
     camera.fov = lerp(52, 41, sstep(0.58, 0.78, p)) + fin * 11; camera.updateProjectionMatrix();
 
     ui(p); lens.render(elapsed, open, rush);
