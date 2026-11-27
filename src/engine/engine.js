@@ -82,7 +82,8 @@ async function run(opts, ctl) {
     const on = p >= PROJECTS[0].at[0] - 0.01 && p < PROJECTS[PROJECTS.length - 1].at[1];
     card.classList.toggle('is-on', on);
     const f = on ? Math.max(0, PROJECTS.findIndex((q) => p < q.at[1])) : -1;
-    if (f !== focus) { focus = f; if (f >= 0) { cardImg.src = PROJECTS[f].image; cardCap.textContent = PROJECTS[f].caption; } }
+    if (f !== focus) focus = f;
+    if (f >= 0) { const image = PROJECTS[f].image || ''; if (cardImg.getAttribute('src') !== image) { if (image) cardImg.src = image; else cardImg.removeAttribute('src'); } cardCap.textContent = PROJECTS[f].caption; }
     actions.classList.toggle('is-on', inRange(p, ACTIONS_RANGE));
     const w = HINT_WORDS.find(([from]) => p >= from)[1]; if (w !== hintWord.textContent) hintWord.textContent = w;
     hint.style.opacity = p > 0.02 && p < 0.9 ? 0 : 1;
