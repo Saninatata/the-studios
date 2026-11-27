@@ -1,5 +1,10 @@
 import { useEffect } from 'react';
 import { start } from '../engine/engine.js';
+import Services from './pages/Services';
+import Work from './pages/Work';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Footer from './Footer';
 
 const SEEN = 'studios-intro';
 
@@ -66,6 +71,13 @@ export default function Home() {
       </div>
 
       <div className="scroll" id="top" aria-hidden="true"></div>
+      <div className="site home-sections">
+        <section id="services" className="home-section"><Services /></section>
+        <section id="work" className="home-section"><Work /></section>
+        <section id="about" className="home-section"><About /></section>
+        <section id="contact" className="home-section"><Contact /></section>
+        <Footer />
+      </div>
       <div className="no-gl caps" id="noGl"><p>This page needs WebGL 2.<br />Open it in a current browser.</p></div>
     </>
   );
