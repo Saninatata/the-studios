@@ -39,9 +39,16 @@ img { display: block; }
 .pill--ghost { background: transparent; box-shadow: none; border-color: var(--ink-25); }
 
 /* ---- Stage ---- */
-.stage { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+.stage { position: fixed; inset: 0; overflow: hidden; background: var(--bg); transition: opacity 700ms var(--ease), visibility 0s linear 700ms; }
+.stage.is-exited { opacity: 0; visibility: hidden; pointer-events: none; transition-delay: 0s, 700ms; }
 .stage__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .scroll { height: 1000vh; }
+.home-sections { position: relative; z-index: 2; background: var(--bg); }
+.home-section { scroll-margin-top: 86px; }
+.home-section > .page { padding-top: calc(var(--u) * 120); }
+.home-section .hero { padding-top: calc(var(--u) * 30); }
+.home-sections .foot { padding-top: calc(var(--u) * 60); }
+@media (max-width: 767px) { .home-section { scroll-margin-top: 64px; } }
 
 /* ---- Header ---- */
 .header { position: absolute; top: 0; left: 0; right: 0; padding: var(--pad); display: flex; justify-content: space-between; align-items: flex-start; }
