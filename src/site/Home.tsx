@@ -17,8 +17,10 @@ export default function Home() {
     const enter = document.getElementById('enterBtn');
     const mark = () => { try { sessionStorage.setItem(SEEN, '1'); } catch { /* ignore */ } };
     enter?.addEventListener('click', mark);
+    const io = new IntersectionObserver((items) => items.forEach((item) => { if (item.isIntersecting) { item.target.classList.add('in'); io.unobserve(item.target); } }), { threshold: 0.12 });
+    document.querySelectorAll('.home-sections .rv').forEach((node) => io.observe(node));
     const stop = start({ skipIntro: seen });
-    return () => { enter?.removeEventListener('click', mark); stop(); };
+    return () => { enter?.removeEventListener('click', mark); io.disconnect(); stop(); };
   }, []);
 
   return (
@@ -72,7 +74,7 @@ export default function Home() {
 
       <div className="scroll" id="top" aria-hidden="true"></div>
       <div className="site home-sections">
-        <section id="services" className="home-section"><Services /></section>
+        <section id="services" className="home-section page"><Services /></section>
         <section id="work" className="home-section"><Work /></section>
         <section id="about" className="home-section"><About /></section>
         <section id="contact" className="home-section"><Contact /></section>
