@@ -5,12 +5,13 @@ import Footer from './site/Footer';
 const Home = lazy(() => import('./site/Home'));   // three.js loads only when the 3D home page is opened
 import Services from './site/pages/Services';
 import Work from './site/pages/Work';
+import Museum from './site/pages/Museum';
 import CaseStudy from './site/pages/CaseStudy';
 import About from './site/pages/About';
 import Quote from './site/pages/Quote';
 import Contact from './site/pages/Contact';
 
-const TITLES = { home: 'Design Authority', services: 'Services', work: 'Work', case: 'Case study', about: 'About', quote: 'Get a quote', contact: 'Contact', missing: 'Not found' } as const;
+const TITLES = { home: 'Design Authority', services: 'Services', work: 'Work', case: 'Case study', museum: 'Museum', about: 'About', quote: 'Get a quote', contact: 'Contact', missing: 'Not found' } as const;
 
 export default function App() {
   const route = useRoute();
@@ -38,6 +39,7 @@ export default function App() {
           <main className="page" key={key}>
             {route.name === 'services' && <Services />}
             {route.name === 'work' && <Work />}
+            {route.name === 'museum' && <Museum />}
             {route.name === 'case' && <CaseStudy id={route.id ?? ''} />}
             {route.name === 'about' && <About />}
             {route.name === 'quote' && <Quote />}
