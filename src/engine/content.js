@@ -14,7 +14,7 @@ export const CHAPTERS = [
   { name: 'Light', range: [0.9, 0.93] },
 ];
 const met = (id) => `https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`;
-const shot = (url) => `https://image.thum.io/get/width/1400/crop/900/noanimate/${encodeURIComponent(url)}`;
+const shot = (url) => `https://image.thum.io/get/width/1400/crop/900/noanimate/${url}`;
 const make = (id, name, caption, source, year, labels, text, image = null) => ({
   id, name, caption, source, image, at: [0.535 + PROJECTS.length * 0.022, 0.557 + PROJECTS.length * 0.022],
   overlay: { year, title: name, label: labels, text }
