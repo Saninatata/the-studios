@@ -4,6 +4,7 @@ import type { Route } from './router';
 const LINKS: [string, string, Route['name'][]][] = [
   ['Services', '#/services', ['services']],
   ['Work', '#/work', ['work', 'case']],
+  ['Museum', '#/museum', ['museum']],
   ['About', '#/about', ['about']],
   ['Contact', '#/contact', ['contact']],
 ];
