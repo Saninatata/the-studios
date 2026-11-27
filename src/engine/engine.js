@@ -64,7 +64,7 @@ async function run(opts, ctl) {
     b.innerHTML = `<span class="rail__line"><i></i></span><span class="rail__text">${['I', 'II', 'III', 'IV'][i]}/IV — ${c.name}</span>`;
     b.addEventListener('click', () => toProgress(c.range[0] + 0.02)); rail.append(b); return b;
   });
-  const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
+  const maxScroll = () => Math.max(1, el('top').offsetHeight - innerHeight);
   let leap = false, glide = null, current = 0, target = 0, hold = null;
   const toProgress = (p) => { leap = true; scrollTo({ top: p * maxScroll(), behavior: reduced ? 'auto' : 'smooth' }); };
   el('againBtn').addEventListener('click', () => {
@@ -155,6 +155,7 @@ async function run(opts, ctl) {
   const OPEN_MS = 1900, OPEN_AFTER = 240;
   function draw(dt) {
     target = maxScroll() > 0 ? clamp(scrollY / maxScroll()) : 0;
+    stage.classList.toggle('is-exited', scrollY > maxScroll() + 4);
     if (reduced) current = target; else {
       const ahead = Math.abs(target - current);
       current += (target - current) * (1 - Math.exp(-dt * (leap || glide ? 5 : 3.2)));
