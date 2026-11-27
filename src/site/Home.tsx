@@ -6,21 +6,14 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Footer from './Footer';
 
-const SEEN = 'studios-intro';
-
 /** The interactive home page: the studio builds itself as you scroll. The engine (src/engine) lives only while this page is open. */
 export default function Home() {
   useEffect(() => {
-    let seen = false;
-    try { seen = sessionStorage.getItem(SEEN) === '1'; } catch { /* private mode: just show the intro */ }
-    if (!seen) document.body.classList.add('is-loading');
-    const enter = document.getElementById('enterBtn');
-    const mark = () => { try { sessionStorage.setItem(SEEN, '1'); } catch { /* ignore */ } };
-    enter?.addEventListener('click', mark);
     const io = new IntersectionObserver((items) => items.forEach((item) => { if (item.isIntersecting) { item.target.classList.add('in'); io.unobserve(item.target); } }), { threshold: 0.12 });
     document.querySelectorAll('.home-sections .rv').forEach((node) => io.observe(node));
-    const stop = start({ skipIntro: seen });
-    return () => { enter?.removeEventListener('click', mark); io.disconnect(); stop(); };
+    document.body.classList.remove('is-loading');
+    const stop = start({ skipIntro: true });
+    return () => { io.disconnect(); stop(); };
   }, []);
 
   return (
